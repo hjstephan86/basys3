@@ -2,8 +2,12 @@
 // seg7_mux.v  –  4-stelliger 7-Segment-Multiplexer
 //
 // Basys 3: gemeinsame Anode, alle Signale aktiv LOW
-// Segmente: seg[6]=a, seg[5]=b, seg[4]=c, seg[3]=d,
-//           seg[2]=e, seg[1]=f, seg[0]=g
+//
+// XDC-Pinbelegung (Basys 3 Schematic):
+//   seg[6]=CA=a, seg[5]=CB=b, seg[4]=CC=c, seg[3]=CD=d,
+//   seg[2]=CE=e, seg[1]=CF=f, seg[0]=CG=g
+//
+// Bit-Reihenfolge im case: {a,b,c,d,e,f,g} → seg[6:0]
 //
 // Refresh-Rate: 100 MHz / 2^18 ≈ 381 Hz pro Digit
 //               → 4 Digits ≈ 95 Hz Gesamt-Refresh (flimmerfrei)
@@ -44,38 +48,40 @@ module seg7_mux (
     end
 
     // ----------------------------------------------------------
-    // Hex → 7-Segment-Decoder
-    // Segment-Zuordnung (aktiv LOW):
+    // Hex → 7-Segment-Decoder  (aktiv LOW)
     //
-    //    aaa
-    //   f   b
-    //   f   b
-    //    ggg
-    //   e   c
-    //   e   c
-    //    ddd
+    //     aaa
+    //    f   b
+    //    f   b
+    //     ggg
+    //    e   c
+    //    e   c
+    //     ddd
     //
-    // seg = {a, b, c, d, e, f, g}  (Index 6..0)
+    // seg[6]=a  seg[5]=b  seg[4]=c  seg[3]=d
+    // seg[2]=e  seg[1]=f  seg[0]=g
+    //
+    // Encoding: {a,b,c,d,e,f,g}  0=AN, 1=AUS
     // ----------------------------------------------------------
     always @(*) begin
         case (current_digit)
-            //              abcdefg
-            4'h0: seg = 7'b1000000;  // 0
-            4'h1: seg = 7'b1111001;  // 1
-            4'h2: seg = 7'b0100100;  // 2
-            4'h3: seg = 7'b0110000;  // 3
-            4'h4: seg = 7'b0011001;  // 4
-            4'h5: seg = 7'b0010010;  // 5
-            4'h6: seg = 7'b0000010;  // 6
-            4'h7: seg = 7'b1111000;  // 7
-            4'h8: seg = 7'b0000000;  // 8
-            4'h9: seg = 7'b0010000;  // 9
+            //               abcdefg
+            4'h0: seg = 7'b0000001;  // 0  – nur g aus
+            4'h1: seg = 7'b1001111;  // 1  – nur b,c an
+            4'h2: seg = 7'b0010010;  // 2
+            4'h3: seg = 7'b0000110;  // 3
+            4'h4: seg = 7'b1001100;  // 4
+            4'h5: seg = 7'b0100100;  // 5
+            4'h6: seg = 7'b0100000;  // 6
+            4'h7: seg = 7'b0001111;  // 7
+            4'h8: seg = 7'b0000000;  // 8  – alle an
+            4'h9: seg = 7'b0000100;  // 9
             4'hA: seg = 7'b0001000;  // A
-            4'hB: seg = 7'b0000011;  // b
-            4'hC: seg = 7'b1000110;  // C
-            4'hD: seg = 7'b0100001;  // d
-            4'hE: seg = 7'b0000110;  // E
-            4'hF: seg = 7'b0001110;  // F
+            4'hB: seg = 7'b1100000;  // b
+            4'hC: seg = 7'b0110001;  // C
+            4'hD: seg = 7'b1000010;  // d
+            4'hE: seg = 7'b0110000;  // E
+            4'hF: seg = 7'b0111000;  // F
             default: seg = 7'b1111111; // aus
         endcase
     end
